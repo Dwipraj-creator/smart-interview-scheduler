@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-
+const interviewerRoutes = require("./routes/interviewer.routes");
 const app = express();
 
 app.use(cors());
@@ -13,5 +13,8 @@ app.get("/", (req, res) => {
     message: "Smart Interview Scheduler API is running",
   });
 });
+
+app.use("/api/interviewers", interviewerRoutes);
+
 
 module.exports = app;
