@@ -3,6 +3,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const interviewerRoutes = require("./routes/interviewer.routes");
 const availabilityRoutes = require("./routes/availability.routes");
+const publicRoutes = require("./routes/public.routes");
 const app = express();
 
 app.use(cors());
@@ -17,6 +18,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/interviewers", interviewerRoutes);
 app.use("/api/availability", availabilityRoutes);
+app.use("/api/public", publicRoutes);
 
 
 module.exports = app;
