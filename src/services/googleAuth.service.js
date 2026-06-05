@@ -17,6 +17,7 @@ const getGoogleAuthUrl = () => {
       "profile",
       "email",
       "https://www.googleapis.com/auth/calendar",
+      "https://www.googleapis.com/auth/gmail.send",
     ],
   });
 };

@@ -2,6 +2,10 @@ const Interviewer = require("../models/interviewer.model");
 const Slot = require("../models/slot.model");
 const Booking = require("../models/booking.model");
 const { createInterviewEvent } = require("../services/googleCalendar.service");
+const {
+  sendCandidateBookingEmail,
+  sendInterviewerBookingEmail,
+} = require("../services/gmail.service");
 
 const getPublicSlots = async (req, res) => {
   try {
@@ -118,6 +122,22 @@ const bookSlot = async (req, res) => {
       googleCalendarEventId: calendarEvent.id,
       googleMeetLink: calendarEvent.hangoutLink,
     });
+
+    await sendCandidateBookingEmail({
+  interviewer,
+  candidateEmail,
+  candidateName,
+  slot,
+  meetLink: calendarEvent.hangoutLink,
+});
+
+await sendInterviewerBookingEmail({
+  interviewer,
+  candidateName,
+  candidateEmail,
+  slot,
+  meetLink: calendarEvent.hangoutLink,
+});
 
     res.status(201).json({
       success: true,
