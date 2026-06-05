@@ -55,9 +55,22 @@ const googleCallback = async (req, res) => {
 
     const jwtToken = generateToken(interviewer._id);
 
-    res.redirect(
-      `${process.env.FRONTEND_CALLBACK_URL}?token=${jwtToken}`
-    );
+    // res.redirect(
+    //  `${process.env.FRONTEND_CALLBACK_URL}?token=${jwtToken}`
+            
+    // );
+
+    res.json({
+  success: true,
+  message: "Google login successful",
+  token: jwtToken,
+  interviewer: {
+    id: interviewer._id,
+    name: interviewer.name,
+    email: interviewer.email,
+    publicProfileId: interviewer.publicProfileId,
+  },
+});
   } catch (error) {
     res.status(500).json({
       success: false,
