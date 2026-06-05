@@ -26,6 +26,13 @@ const bookingSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+    googleCalendarEventId: {
+      type: String,
+    },
+
+    googleMeetLink: {
+      type: String,
+    },
 
     note: {
       type: String,
@@ -39,7 +46,7 @@ const bookingSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 module.exports = mongoose.model("Booking", bookingSchema);

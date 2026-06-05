@@ -1,6 +1,7 @@
 const Interviewer = require("../models/interviewer.model");
 const Slot = require("../models/slot.model");
 const Booking = require("../models/booking.model");
+const { createInterviewEvent } = require("../services/googleCalendar.service");
 
 const getPublicSlots = async (req, res) => {
   try {
@@ -58,6 +59,8 @@ const getPublicSlots = async (req, res) => {
 };
 
 const bookSlot = async (req, res) => {
+  let bookedSlot = null;
+
   try {
     const { slotId, candidateName, candidateEmail, note } = req.body;
 
@@ -79,7 +82,7 @@ const bookSlot = async (req, res) => {
       },
       {
         new: true,
-      }
+      },
     );
 
     if (!slot) {
@@ -89,6 +92,22 @@ const bookSlot = async (req, res) => {
       });
     }
 
+    bookedSlot = slot;
+
+    const interviewer = await Interviewer.findById(slot.interviewerId);
+
+    if (!interviewer || !interviewer.refreshToken) {
+      throw new Error("Interviewer Google account is not connected");
+    }
+
+    const calendarEvent = await createInterviewEvent({
+      interviewer,
+      slot,
+      candidateName,
+      candidateEmail,
+      note,
+    });
+
     const booking = await Booking.create({
       interviewerId: slot.interviewerId,
       slotId: slot._id,
@@ -96,6 +115,8 @@ const bookSlot = async (req, res) => {
       candidateEmail,
       note,
       status: "booked",
+      googleCalendarEventId: calendarEvent.id,
+      googleMeetLink: calendarEvent.hangoutLink,
     });
 
     res.status(201).json({
@@ -105,6 +126,12 @@ const bookSlot = async (req, res) => {
       slot,
     });
   } catch (error) {
+    if (bookedSlot) {
+      await Slot.findByIdAndUpdate(bookedSlot._id, {
+        status: "available",
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: error.message,
