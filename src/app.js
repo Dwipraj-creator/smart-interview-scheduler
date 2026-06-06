@@ -6,6 +6,8 @@ const availabilityRoutes = require("./routes/availability.routes");
 const publicRoutes = require("./routes/public.routes");
 const authRoutes = require("./routes/auth.routes");
 const notificationRoutes = require("./routes/notification.routes");
+const dashboardRoutes = require("./routes/dashboard.routes");
+
 const app = express();
 
 app.use(cors());
@@ -23,6 +25,7 @@ app.use("/api/availability", availabilityRoutes);
 app.use("/api/public", publicRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 
 module.exports = app;
