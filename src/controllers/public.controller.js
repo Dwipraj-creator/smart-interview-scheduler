@@ -5,7 +5,11 @@ const { createInterviewEvent } = require("../services/googleCalendar.service");
 const {
   sendCandidateBookingEmail,
   sendInterviewerBookingEmail,
+  sendCandidateCancellationEmail,
+  sendInterviewerCancellationEmail,
 } = require("../services/gmail.service");
+const crypto = require("crypto")
+const { deleteInterviewEvent } = require("../services/googleCalendar.service");
 
 const getPublicSlots = async (req, res) => {
   try {
@@ -112,6 +116,8 @@ const bookSlot = async (req, res) => {
       note,
     });
 
+    const cancelToken = crypto.randomBytes(32).toString("hex");
+
     const booking = await Booking.create({
       interviewerId: slot.interviewerId,
       slotId: slot._id,
@@ -121,6 +127,7 @@ const bookSlot = async (req, res) => {
       status: "booked",
       googleCalendarEventId: calendarEvent.id,
       googleMeetLink: calendarEvent.hangoutLink,
+      cancelToken,
     });
 
     await sendCandidateBookingEmail({
@@ -129,6 +136,7 @@ const bookSlot = async (req, res) => {
   candidateName,
   slot,
   meetLink: calendarEvent.hangoutLink,
+  cancelToken,
 });
 
 await sendInterviewerBookingEmail({
@@ -159,7 +167,67 @@ await sendInterviewerBookingEmail({
   }
 };
 
+const cancelBooking = async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    const booking = await Booking.findOne({
+      cancelToken: token,
+      status: "booked",
+    });
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Invalid or expired cancellation link",
+      });
+    }
+
+    const slot = await Slot.findById(booking.slotId);
+    const interviewer = await Interviewer.findById(booking.interviewerId);
+
+    if (booking.googleCalendarEventId) {
+      await deleteInterviewEvent({
+        interviewer,
+        eventId: booking.googleCalendarEventId,
+      });
+    }
+
+    booking.status = "cancelled";
+    booking.cancelToken = undefined;
+    await booking.save();
+
+    slot.status = "available";
+    await slot.save();
+
+    await sendCandidateCancellationEmail({
+      interviewer,
+      candidateEmail: booking.candidateEmail,
+      candidateName: booking.candidateName,
+      slot,
+    });
+
+    await sendInterviewerCancellationEmail({
+      interviewer,
+      candidateName: booking.candidateName,
+      candidateEmail: booking.candidateEmail,
+      slot,
+    });
+
+    res.json({
+      success: true,
+      message: "Booking cancelled successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   getPublicSlots,
   bookSlot,
+cancelBooking,  
 };

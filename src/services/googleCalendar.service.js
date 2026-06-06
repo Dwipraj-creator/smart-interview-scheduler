@@ -61,6 +61,19 @@ const createInterviewEvent = async ({
   return response.data;
 };
 
+const deleteInterviewEvent = async ({ interviewer, eventId }) => {
+  const calendar = createCalendarClient(interviewer);
+
+  await calendar.events.delete({
+    calendarId: "primary",
+    eventId,
+    sendUpdates: "all",
+  });
+
+  return true;
+};
+
 module.exports = {
   createInterviewEvent,
+  deleteInterviewEvent,
 };

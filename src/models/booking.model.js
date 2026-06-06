@@ -33,6 +33,11 @@ const bookingSchema = new mongoose.Schema(
     googleMeetLink: {
       type: String,
     },
+    cancelToken: {
+  type: String,
+  unique: true,
+  sparse: true,
+},
 
     note: {
       type: String,
