@@ -10,6 +10,7 @@ const {
 } = require("../services/gmail.service");
 const crypto = require("crypto")
 const { deleteInterviewEvent } = require("../services/googleCalendar.service");
+const { createNotification } = require("../services/notification.service");
 
 const getPublicSlots = async (req, res) => {
   try {
@@ -147,6 +148,14 @@ await sendInterviewerBookingEmail({
   meetLink: calendarEvent.hangoutLink,
 });
 
+await createNotification({
+  req,
+  interviewerId: slot.interviewerId,
+  bookingId: booking._id,
+  type: "new_booking",
+  message: `${candidateName} booked an interview slot.`,
+});
+
     res.status(201).json({
       success: true,
       message: "Slot booked successfully",
@@ -213,6 +222,14 @@ const cancelBooking = async (req, res) => {
       candidateEmail: booking.candidateEmail,
       slot,
     });
+
+    await createNotification({
+  req,
+  interviewerId: booking.interviewerId,
+  bookingId: booking._id,
+  type: "booking_cancelled",
+  message: `${booking.candidateName} cancelled their interview.`,
+});
 
     res.json({
       success: true,

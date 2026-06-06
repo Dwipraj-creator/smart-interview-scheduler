@@ -34,10 +34,14 @@ const bookingSchema = new mongoose.Schema(
       type: String,
     },
     cancelToken: {
-  type: String,
-  unique: true,
-  sparse: true,
-},
+      type: String,
+      unique: true,
+      sparse: true,
+    },
+    reminderSent: {
+      type: Boolean,
+      default: false,
+    },
 
     note: {
       type: String,
